@@ -5,52 +5,32 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: http://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-import json
-import codecs
-import MySQLdb
-import MySQLdb.cursors
-import logging
+import pymongo
 
-from twisted.enterprise import adbapi
-from scrapy import signals
+from scrapy.conf import settings
+from scrapy.exceptions import DropItem
+from scrapy import log
 
-logger = logging.getLogger('mycustomlogger')
-
-class MonsterPipeline(object):
+class MongoDBPipeline(object):
     def __init__(self):
-        self.file = codecs.open('..\\monster\\monster\\monster.json', 'w', encoding = 'utf-8')
+        connection = pymongo.MongoClient(
+            settings['MONGODB_SERVER'],
+            settings['MONGODB_PORT']
+        )
+        db = connection[settings['MONGODB_DB']]
+        self.collection = db[settings['MONGODB_COLLECTION']]
 
     def process_item(self, item, spider):
-        line = json.dumps(dict(item), ensure_ascii = False) + "\n" # what is this
-        self.file.write(line)
-        return item
+        valid = True
+        for data in item:
+            if not data:
+                valid = False
+                raise DropItem("Missing {0}".format(data))
+            if valid:
+                self.collection.insert(dict(item))
+                log.msg("Title added to MongoDB database!",
+                        level = log.DEBUG, spider = spider)
+            return item
 
-    def process_closed(self, spider):
-        self.file.close()
-
-class MonsterMySQLPipeline(object):
-    '''Construct MySQL database'''
-    def __init__(self):
-        self.connpool = adbapi.ConnectionPool('MySQLdb',
-            host = "127.0.0.1",
-            db = "monster",
-            user = 'root',
-            passwd = '',
-            cursorclass = MySQLdb.cursors.DictCursor,
-            charset = 'utf8',
-            use_unicode = True)
-
-    def process_item(self, item, spider):
-        query = self.connpool.runInteraction(self._conditional_insert, item)
-        query.addErrback(self.handle_error)
-        return item
-
-    def _conditional_insert(self, tx, item):
-        if item.get('title'):
-            tx.execute("insert into detail (title, company, job_state, job_city, dec, date) values(%s, %s, %s, %s, %s, %s)",
-                       (item['title'], item['company'], item['company'], item['job_state'], item['job_city'], item['dec'], item['date']))
-
-    def handle_error(self, e):
-        logger.err(e)
 
 

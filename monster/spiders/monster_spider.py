@@ -38,6 +38,6 @@ class Monster_spider(CrawlSpider):
                 item['date']           = json_sel2['datePosted']
             except Exception, e:
                 print repr(e)
-            # print(json_sel2['title'])
+
             items.append(item)
         return items

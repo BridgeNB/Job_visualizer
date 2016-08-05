@@ -60,9 +60,7 @@ SPIDER_MIDDLEWARES = {
 
 # Enable or disable extensions
 # See http://scrapy.readthedocs.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    'scrapy.extensions.telnet.TelnetConsole': None,
-#}
+
 
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
@@ -92,7 +90,14 @@ SPIDER_MIDDLEWARES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 # Database setting
-# ITEM_PIPELINES = ['stack.pipeline.MongoBP']
+ITEM_PIPELINES = {
+    'monster.pipelines.MongoDBPipeline': 300,
+}
+
+MONGODB_SERVER     = "localhost"
+MONGODB_PORT       = 27017
+MONGODB_DB         = "monster"
+MONGODB_COLLECTION = "information"
 
 # Fake agents
 USER_AGENT_LIST = [
