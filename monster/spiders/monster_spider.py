@@ -6,7 +6,7 @@ import time
 import scrapy
 import json
 import yaml
-from scrapy.contrib.spiders import CrawlSpider
+from scrapy.spiders import CrawlSpider
 from monster.items import MonsterItem
 
 class Monster_spider(CrawlSpider):
@@ -18,11 +18,11 @@ class Monster_spider(CrawlSpider):
 
     def parse(self, response):
         # temp json response
+        print(response)
         selectors = response.xpath('//script[@type="application/ld+json"]/text()').extract()
         # json_response = json.loads(response.body_as_unicode())
         # # loading time interval
-        # time.sleep(5)
-
+        time.sleep(5)
 
         items = []
         for sel in selectors:
